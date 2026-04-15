@@ -12,6 +12,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.yhg.translate.network.TranslationService
 import com.yhg.translate.ui.screens.HomeScreen
 import com.yhg.translate.ui.screens.TranslationBottomSheet
 import com.yhg.translate.ui.screens.WordBookScreen
@@ -24,25 +27,28 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         
+        // 初始化词典服务
+        TranslationService.initialize(this)
+        
         // 处理从其他应用传递过来的文本
         val selectedText = intent.getStringExtra(Intent.EXTRA_PROCESS_TEXT)
         
         setContent {
             TranslateTheme {
-                MainApp(initialText = selectedText ?: "")
+                MainApp(initialText = selectedText ?: "", applicationContext)
             }
         }
     }
 }
 
 @Composable
-fun MainApp(initialText: String) {
+fun MainApp(initialText: String, context: android.content.Context) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
     var showTranslationSheet by remember { mutableStateOf(false) }
     var sheetInitialText by remember { mutableStateOf(initialText) }
     
-    val translationViewModel = remember { TranslationViewModel() }
-    val wordBookViewModel = remember { WordBookViewModel() }
+    val translationViewModel: TranslationViewModel = viewModel()
+    val wordBookViewModel: WordBookViewModel = viewModel()
     
     // 监听初始文本
     LaunchedEffect(initialText) {

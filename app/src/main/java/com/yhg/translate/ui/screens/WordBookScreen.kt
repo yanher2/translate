@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yhg.translate.data.WordEntity
@@ -29,10 +30,10 @@ fun WordBookScreen(
     val context = LocalContext.current
     val words by viewModel.words.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    
+
     var searchQuery by remember { mutableStateOf("") }
     var showDeleteAllDialog by remember { mutableStateOf(false) }
-    
+
     val filteredWords = remember(words, searchQuery) {
         if (searchQuery.isBlank()) {
             words
@@ -43,11 +44,7 @@ fun WordBookScreen(
             }
         }
     }
-    
-    LaunchedEffect(Unit) {
-        viewModel.loadWords(context)
-    }
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -85,9 +82,9 @@ fun WordBookScreen(
                 },
                 singleLine = true
             )
-            
+
             // Word List
-            if (isLoading) {
+            if (isLoading && words.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -126,8 +123,8 @@ fun WordBookScreen(
                     items(filteredWords, key = { it.id }) { word ->
                         WordCard(
                             word = word,
-                            onDelete = { 
-                                viewModel.deleteWord(context, word)
+                            onDelete = {
+                                viewModel.deleteWord(word)
                                 Toast.makeText(context, "已删除", Toast.LENGTH_SHORT).show()
                             }
                         )
@@ -136,7 +133,7 @@ fun WordBookScreen(
             }
         }
     }
-    
+
     // Delete All Confirmation Dialog
     if (showDeleteAllDialog) {
         AlertDialog(
@@ -146,7 +143,7 @@ fun WordBookScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.deleteAllWords(context)
+                        viewModel.deleteAllWords()
                         showDeleteAllDialog = false
                         Toast.makeText(context, "已清空单词本", Toast.LENGTH_SHORT).show()
                     },
@@ -191,7 +188,7 @@ fun WordCard(
                 Text(
                     text = word.englishWord,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = word.chineseTranslation,
